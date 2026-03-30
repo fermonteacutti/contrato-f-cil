@@ -124,26 +124,24 @@ const ProcessoDetalhe = () => {
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Atividade:</span>
-                  <span className="text-foreground text-right max-w-[60%]">{process.business_activity || "—"}</span>
+                  <span className="text-foreground text-right max-w-[60%]">{process.form_data?.objeto_social || "—"}</span>
                 </div>
-                {process.cnae && (
+                {process.form_data?.cnae_principal && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">CNAE:</span>
-                    <span className="text-foreground">{process.cnae}</span>
+                    <span className="text-foreground">{process.form_data.cnae_principal}</span>
                   </div>
                 )}
-                {process.start_date && (
+                {process.form_data?.data_inicio && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Início:</span>
-                    <span className="text-foreground">{process.start_date}</span>
+                    <span className="text-foreground">{process.form_data.data_inicio}</span>
                   </div>
                 )}
-                {process.capital != null && (
+                {process.form_data?.capital_social && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Capital:</span>
-                    <span className="text-foreground">
-                      R$ {Number(process.capital).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </span>
+                    <span className="text-foreground">R$ {process.form_data.capital_social}</span>
                   </div>
                 )}
               </div>
