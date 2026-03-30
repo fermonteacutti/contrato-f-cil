@@ -1,110 +1,559 @@
+import { useEffect, useState, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building2, User, Users, UserCheck } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { ArrowLeft, ArrowRight, Building2, User, Users, UserCheck, Plus, Trash2, Loader2, Check } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { useClients } from "@/hooks/useClients";
+import { useProcesses, CompanyType } from "@/hooks/useProcesses";
+import ClienteModal from "@/components/clientes/ClienteModal";
 
-const companyTypes = [
-  {
-    id: "mei",
-    label: "MEI",
-    title: "Microempreendedor Individual",
-    description: "Faturamento até R$ 81 mil/ano. Fluxo simplificado via Portal do Empreendedor.",
-    complexity: "Baixa",
-    icon: User,
-  },
-  {
-    id: "ei",
-    label: "EI",
-    title: "Empresário Individual",
-    description: "Pessoa física exercendo atividade econômica individualmente. Registro JUCESP + CNPJ.",
-    complexity: "Média",
-    icon: UserCheck,
-  },
-  {
-    id: "slu",
-    label: "SLU",
-    title: "Sociedade Limitada Unipessoal",
-    description: "Empresa com único sócio e limitação de responsabilidade ao capital social.",
-    complexity: "Média-Alta",
-    icon: Building2,
-  },
-  {
-    id: "ltda",
-    label: "LTDA",
-    title: "Sociedade Limitada",
-    description: "Dois ou mais sócios com responsabilidade limitada ao capital social.",
-    complexity: "Alta",
-    icon: Users,
-  },
+// ── Types ──────────────────────────────────────────────────
+const companyTypes: { id: CompanyType; label: string; title: string; description: string; icon: any }[] = [
+  { id: "mei", label: "MEI", title: "Microempreendedor Individual", description: "Faturamento até R$ 81 mil/ano", icon: User },
+  { id: "ei", label: "EI", title: "Empresário Individual", description: "Empresário Individual", icon: UserCheck },
+  { id: "slu", label: "SLU", title: "Sociedade Limitada Unipessoal", description: "Sócio único, responsabilidade limitada", icon: Building2 },
+  { id: "ltda", label: "LTDA", title: "Sociedade Limitada", description: "Dois ou mais sócios", icon: Users },
 ];
 
-const complexityColors: Record<string, string> = {
-  "Baixa": "text-success",
-  "Média": "text-info",
-  "Média-Alta": "text-accent",
-  "Alta": "text-destructive",
+// ── Schemas ────────────────────────────────────────────────
+const step1Schema = z.object({
+  company_type: z.enum(["mei", "ei", "slu", "ltda"], { required_error: "Selecione o tipo" }),
+  client_id: z.string().min(1, "Selecione um cliente"),
+});
+
+const socioSchema = z.object({
+  nome: z.string().min(1, "Nome obrigatório"),
+  cpf: z.string().min(1, "CPF obrigatório"),
+  percentual: z.coerce.number().min(0.01, "Mínimo 0.01%").max(100),
+});
+
+const step2Schema = z.object({
+  company_name: z.string().min(1, "Nome empresarial obrigatório"),
+  business_activity: z.string().min(1, "Atividade obrigatória"),
+  cnae: z.string().optional().or(z.literal("")),
+  cep: z.string().optional().or(z.literal("")),
+  logradouro: z.string().optional().or(z.literal("")),
+  numero: z.string().optional().or(z.literal("")),
+  complemento: z.string().optional().or(z.literal("")),
+  bairro: z.string().optional().or(z.literal("")),
+  cidade: z.string().optional().or(z.literal("")),
+  estado: z.string().optional().or(z.literal("")),
+  start_date: z.string().optional().or(z.literal("")),
+  capital: z.string().optional().or(z.literal("")),
+  socios: z.array(socioSchema).optional(),
+});
+
+// ── Masks ──────────────────────────────────────────────────
+const maskCep = (v: string) => v.replace(/\D/g, "").replace(/(\d{5})(\d)/, "$1-$2");
+const maskCpf = (v: string) => {
+  const d = v.replace(/\D/g, "");
+  return d.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+};
+const maskCurrency = (v: string) => {
+  const digits = v.replace(/\D/g, "");
+  if (!digits) return "";
+  const num = parseInt(digits, 10) / 100;
+  return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
 const NovoProcesso = () => {
-  const [selected, setSelected] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("id");
 
+  const [step, setStep] = useState(0);
+  const [confirmed, setConfirmed] = useState(false);
+  const [clientModalOpen, setClientModalOpen] = useState(false);
+  const [draftId, setDraftId] = useState<string | null>(editId);
+
+  const { clientsQuery } = useClients();
+  const { processesQuery, createProcess, updateProcess } = useProcesses();
+  const clients = clientsQuery.data ?? [];
+
+  // ── Forms ──
+  const form1 = useForm<z.infer<typeof step1Schema>>({
+    resolver: zodResolver(step1Schema),
+    defaultValues: { company_type: undefined as any, client_id: "" },
+  });
+
+  const form2 = useForm<z.infer<typeof step2Schema>>({
+    resolver: zodResolver(step2Schema),
+    defaultValues: {
+      company_name: "", business_activity: "", cnae: "",
+      cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "",
+      start_date: "", capital: "", socios: [],
+    },
+  });
+
+  const { fields: socioFields, append: addSocio, remove: removeSocio } = useFieldArray({
+    control: form2.control,
+    name: "socios",
+  });
+
+  const selectedType = form1.watch("company_type");
+  const showCapital = selectedType === "ei" || selectedType === "slu" || selectedType === "ltda";
+  const showSocios = selectedType === "ltda";
+
+  // Load existing process for edit
+  useEffect(() => {
+    if (!editId || !processesQuery.data) return;
+    const existing = processesQuery.data.find((p) => p.id === editId);
+    if (!existing) return;
+    form1.reset({ company_type: existing.company_type, client_id: existing.client_id });
+    form2.reset({
+      company_name: existing.company_name || "",
+      business_activity: existing.business_activity || "",
+      cnae: existing.cnae || "",
+      cep: existing.address?.cep || "",
+      logradouro: existing.address?.logradouro || "",
+      numero: existing.address?.numero || "",
+      complemento: existing.address?.complemento || "",
+      bairro: existing.address?.bairro || "",
+      cidade: existing.address?.cidade || "",
+      estado: existing.address?.estado || "",
+      start_date: existing.start_date || "",
+      capital: existing.capital ? String(existing.capital) : "",
+      socios: existing.socios || [],
+    });
+  }, [editId, processesQuery.data]);
+
+  // ── ViaCEP ──
+  const fetchCep = async (cep: string) => {
+    const digits = cep.replace(/\D/g, "");
+    if (digits.length !== 8) return;
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const data = await res.json();
+      if (data.erro) { toast.error("CEP não encontrado"); return; }
+      form2.setValue("logradouro", data.logradouro || "");
+      form2.setValue("bairro", data.bairro || "");
+      form2.setValue("cidade", data.localidade || "");
+      form2.setValue("estado", data.uf || "");
+    } catch { toast.error("Erro ao buscar CEP"); }
+  };
+
+  // ── Save draft helper ──
+  const buildPayload = (status: string = "rascunho") => {
+    const v1 = form1.getValues();
+    const v2 = form2.getValues();
+    const capitalStr = v2.capital?.replace(/\./g, "").replace(",", ".");
+    return {
+      client_id: v1.client_id,
+      company_type: v1.company_type,
+      status: status as any,
+      company_name: v2.company_name || null,
+      business_activity: v2.business_activity || null,
+      cnae: v2.cnae || null,
+      address: v2.cep ? { cep: v2.cep, logradouro: v2.logradouro, numero: v2.numero, complemento: v2.complemento, bairro: v2.bairro, cidade: v2.cidade, estado: v2.estado } : null,
+      start_date: v2.start_date || null,
+      capital: capitalStr ? parseFloat(capitalStr) : null,
+      socios: showSocios && v2.socios?.length ? v2.socios : null,
+    };
+  };
+
+  const saveDraft = async () => {
+    try {
+      const payload = buildPayload("rascunho");
+      if (draftId) {
+        await updateProcess.mutateAsync({ id: draftId, ...payload });
+      } else {
+        const result = await createProcess.mutateAsync(payload);
+        setDraftId(result.id);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao salvar rascunho");
+    }
+  };
+
+  // ── Step navigation ──
+  const goNext = async () => {
+    if (step === 0) {
+      const valid = await form1.trigger();
+      if (!valid) return;
+      await saveDraft();
+      setStep(1);
+    } else if (step === 1) {
+      const valid = await form2.trigger();
+      if (!valid) return;
+      if (showSocios) {
+        const socios = form2.getValues("socios") || [];
+        if (socios.length === 0) { toast.error("Adicione ao menos um sócio"); return; }
+        const total = socios.reduce((s, sc) => s + Number(sc.percentual), 0);
+        if (Math.abs(total - 100) > 0.01) { toast.error(`Total de participação deve ser 100%. Atual: ${total.toFixed(2)}%`); return; }
+      }
+      await saveDraft();
+      setStep(2);
+    }
+  };
+
+  const goBack = () => { if (step > 0) setStep(step - 1); };
+
+  const handleSaveDraft = async () => {
+    await saveDraft();
+    toast.success("Rascunho salvo com sucesso!");
+    navigate("/app/processos");
+  };
+
+  const handleGenerate = async () => {
+    if (!confirmed) { toast.error("Confirme que os dados estão corretos"); return; }
+    try {
+      const payload = buildPayload("aguardando_docs");
+      if (draftId) {
+        await updateProcess.mutateAsync({ id: draftId, ...payload });
+      } else {
+        await createProcess.mutateAsync(payload);
+      }
+      toast.success("Processo salvo! Geração de documentos será implementada em breve.");
+      navigate("/app/processos");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao salvar processo");
+    }
+  };
+
+  const isSaving = createProcess.isPending || updateProcess.isPending;
+
+  // ── Summary data for step 3 ──
+  const summaryData = useMemo(() => {
+    const v1 = form1.getValues();
+    const v2 = form2.getValues();
+    const client = clients.find((c) => c.id === v1.client_id);
+    const typeInfo = companyTypes.find((t) => t.id === v1.company_type);
+    return { v1, v2, client, typeInfo };
+  }, [step, clients]);
+
+  // ── RENDER ──
   return (
-    <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
+    <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
       <div>
         <Link to="/app/processos" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
-          <ArrowLeft className="w-4 h-4" />
-          Voltar
+          <ArrowLeft className="w-4 h-4" /> Voltar
         </Link>
-        <h1 className="font-heading text-2xl font-bold text-foreground">Novo Processo</h1>
-        <p className="text-sm text-muted-foreground mt-1">Selecione o tipo de empresa para iniciar</p>
+        <h1 className="font-heading text-2xl font-bold text-foreground">
+          {editId ? "Editar Processo" : "Novo Processo"}
+        </h1>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {companyTypes.map((type) => (
-          <Card
-            key={type.id}
-            className={cn(
-              "cursor-pointer transition-all border-2",
-              selected === type.id
-                ? "border-primary shadow-card-hover"
-                : "border-border/50 shadow-card hover:border-primary/30"
-            )}
-            onClick={() => setSelected(type.id)}
-          >
-            <CardContent className="p-5">
-              <div className="flex items-start gap-4">
-                <div className={cn(
-                  "w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0",
-                  selected === type.id ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
-                )}>
-                  <type.icon className="w-6 h-6" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-heading font-bold text-foreground">{type.label}</span>
-                    <span className={cn("text-xs font-medium", complexityColors[type.complexity])}>
-                      {type.complexity}
-                    </span>
-                  </div>
-                  <p className="text-sm font-medium text-foreground/80 mb-1">{type.title}</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{type.description}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Stepper */}
+      <div className="flex items-center gap-2">
+        {["Tipo e Cliente", "Dados da Empresa", "Revisão"].map((label, i) => (
+          <div key={i} className="flex items-center gap-2 flex-1">
+            <div className={cn(
+              "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0",
+              i < step ? "bg-success text-success-foreground" :
+              i === step ? "bg-primary text-primary-foreground" :
+              "bg-muted text-muted-foreground"
+            )}>
+              {i < step ? <Check className="w-4 h-4" /> : i + 1}
+            </div>
+            <span className={cn("text-sm hidden sm:block", i === step ? "font-semibold text-foreground" : "text-muted-foreground")}>
+              {label}
+            </span>
+            {i < 2 && <div className="flex-1 h-px bg-border" />}
+          </div>
         ))}
       </div>
 
-      <div className="flex justify-end">
-        <Button
-          disabled={!selected}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 font-heading font-600 px-8"
-        >
-          Continuar
-        </Button>
+      {/* STEP 0 */}
+      {step === 0 && (
+        <Form {...form1}>
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+            <FormField control={form1.control} name="company_type" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-heading font-semibold">Tipo de Empresa</FormLabel>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                  {companyTypes.map((type) => (
+                    <Card
+                      key={type.id}
+                      className={cn(
+                        "cursor-pointer transition-all border-2",
+                        field.value === type.id
+                          ? "border-primary shadow-card-hover"
+                          : "border-border/50 shadow-card hover:border-primary/30"
+                      )}
+                      onClick={() => field.onChange(type.id)}
+                    >
+                      <CardContent className="p-5">
+                        <div className="flex items-start gap-4">
+                          <div className={cn(
+                            "w-12 h-12 rounded-lg flex items-center justify-center shrink-0",
+                            field.value === type.id ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
+                          )}>
+                            <type.icon className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <span className="font-heading font-bold text-foreground">{type.label}</span>
+                            <p className="text-sm text-foreground/80">{type.title}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{type.description}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                <FormMessage />
+              </FormItem>
+            )} />
+
+            <FormField control={form1.control} name="client_id" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-heading font-semibold">Cliente</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um cliente" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {clients.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+                <Button type="button" variant="link" className="px-0 h-auto text-sm" onClick={() => setClientModalOpen(true)}>
+                  <Plus className="w-3 h-3 mr-1" /> Cadastrar novo cliente
+                </Button>
+              </FormItem>
+            )} />
+          </form>
+        </Form>
+      )}
+
+      {/* STEP 1 */}
+      {step === 1 && (
+        <Form {...form2}>
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField control={form2.control} name="company_name" render={({ field }) => (
+                <FormItem className="sm:col-span-2">
+                  <FormLabel>Nome Empresarial *</FormLabel>
+                  <FormControl><Input {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form2.control} name="business_activity" render={({ field }) => (
+                <FormItem className="sm:col-span-2">
+                  <FormLabel>Objeto Social / Atividade Principal *</FormLabel>
+                  <FormControl><Input {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form2.control} name="cnae" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>CNAE Principal</FormLabel>
+                  <FormControl><Input placeholder="Ex: 6201-5/00" {...field} /></FormControl>
+                </FormItem>
+              )} />
+              <FormField control={form2.control} name="start_date" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data de Início</FormLabel>
+                  <FormControl><Input type="date" {...field} /></FormControl>
+                </FormItem>
+              )} />
+            </div>
+
+            {showCapital && (
+              <FormField control={form2.control} name="capital" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Capital Social (R$)</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="0,00"
+                      onChange={(e) => field.onChange(maskCurrency(e.target.value))}
+                    />
+                  </FormControl>
+                </FormItem>
+              )} />
+            )}
+
+            {/* Address */}
+            <div className="border-t border-border pt-4">
+              <p className="text-sm font-medium text-foreground mb-3">Endereço do Estabelecimento</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <FormField control={form2.control} name="cep" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CEP</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        maxLength={9}
+                        placeholder="00000-000"
+                        onChange={(e) => field.onChange(maskCep(e.target.value))}
+                        onBlur={(e) => { field.onBlur(); fetchCep(e.target.value); }}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )} />
+                <FormField control={form2.control} name="logradouro" render={({ field }) => (
+                  <FormItem className="sm:col-span-2"><FormLabel>Logradouro</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                )} />
+                <FormField control={form2.control} name="numero" render={({ field }) => (
+                  <FormItem><FormLabel>Número</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                )} />
+                <FormField control={form2.control} name="complemento" render={({ field }) => (
+                  <FormItem><FormLabel>Complemento</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                )} />
+                <FormField control={form2.control} name="bairro" render={({ field }) => (
+                  <FormItem><FormLabel>Bairro</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                )} />
+                <FormField control={form2.control} name="cidade" render={({ field }) => (
+                  <FormItem><FormLabel>Cidade</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                )} />
+                <FormField control={form2.control} name="estado" render={({ field }) => (
+                  <FormItem><FormLabel>Estado</FormLabel><FormControl><Input {...field} maxLength={2} /></FormControl></FormItem>
+                )} />
+              </div>
+            </div>
+
+            {/* Sócios */}
+            {showSocios && (
+              <div className="border-t border-border pt-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-foreground">Sócios</p>
+                  <Button type="button" variant="outline" size="sm" onClick={() => addSocio({ nome: "", cpf: "", percentual: 0 })}>
+                    <Plus className="w-4 h-4 mr-1" /> Adicionar Sócio
+                  </Button>
+                </div>
+                {socioFields.map((f, idx) => (
+                  <Card key={f.id} className="border-border/50">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+                          <FormField control={form2.control} name={`socios.${idx}.nome`} render={({ field }) => (
+                            <FormItem><FormLabel>Nome</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                          )} />
+                          <FormField control={form2.control} name={`socios.${idx}.cpf`} render={({ field }) => (
+                            <FormItem><FormLabel>CPF</FormLabel><FormControl>
+                              <Input {...field} maxLength={14} onChange={(e) => field.onChange(maskCpf(e.target.value))} />
+                            </FormControl><FormMessage /></FormItem>
+                          )} />
+                          <FormField control={form2.control} name={`socios.${idx}.percentual`} render={({ field }) => (
+                            <FormItem><FormLabel>Participação (%)</FormLabel><FormControl>
+                              <Input type="number" step="0.01" min="0" max="100" {...field} />
+                            </FormControl><FormMessage /></FormItem>
+                          )} />
+                        </div>
+                        <Button type="button" variant="ghost" size="icon" className="mt-6 text-destructive hover:text-destructive" onClick={() => removeSocio(idx)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </form>
+        </Form>
+      )}
+
+      {/* STEP 2 — Review */}
+      {step === 2 && (
+        <div className="space-y-6">
+          <Card className="border-border/50">
+            <CardContent className="p-5 space-y-3">
+              <h3 className="font-heading font-semibold text-foreground">Tipo e Cliente</h3>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <span className="text-muted-foreground">Tipo:</span>
+                <Badge variant="outline" className="w-fit font-bold">{summaryData.typeInfo?.label}</Badge>
+                <span className="text-muted-foreground">Cliente:</span>
+                <span className="text-foreground">{summaryData.client?.name || "—"}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/50">
+            <CardContent className="p-5 space-y-3">
+              <h3 className="font-heading font-semibold text-foreground">Dados da Empresa</h3>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <span className="text-muted-foreground">Nome Empresarial:</span>
+                <span className="text-foreground">{summaryData.v2.company_name || "—"}</span>
+                <span className="text-muted-foreground">Atividade:</span>
+                <span className="text-foreground">{summaryData.v2.business_activity || "—"}</span>
+                {summaryData.v2.cnae && (<><span className="text-muted-foreground">CNAE:</span><span className="text-foreground">{summaryData.v2.cnae}</span></>)}
+                {summaryData.v2.start_date && (<><span className="text-muted-foreground">Início:</span><span className="text-foreground">{summaryData.v2.start_date}</span></>)}
+                {summaryData.v2.capital && (<><span className="text-muted-foreground">Capital:</span><span className="text-foreground">R$ {summaryData.v2.capital}</span></>)}
+              </div>
+            </CardContent>
+          </Card>
+
+          {summaryData.v2.cep && (
+            <Card className="border-border/50">
+              <CardContent className="p-5 space-y-3">
+                <h3 className="font-heading font-semibold text-foreground">Endereço</h3>
+                <p className="text-sm text-foreground">
+                  {[summaryData.v2.logradouro, summaryData.v2.numero, summaryData.v2.complemento, summaryData.v2.bairro, summaryData.v2.cidade, summaryData.v2.estado, summaryData.v2.cep]
+                    .filter(Boolean).join(", ")}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {showSocios && summaryData.v2.socios && summaryData.v2.socios.length > 0 && (
+            <Card className="border-border/50">
+              <CardContent className="p-5 space-y-3">
+                <h3 className="font-heading font-semibold text-foreground">Sócios</h3>
+                {summaryData.v2.socios.map((s, i) => (
+                  <div key={i} className="flex justify-between text-sm border-b border-border/50 pb-2 last:border-0">
+                    <span className="text-foreground">{s.nome} — {s.cpf}</span>
+                    <span className="font-medium text-foreground">{s.percentual}%</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="flex items-center gap-2">
+            <Checkbox id="confirm" checked={confirmed} onCheckedChange={(v) => setConfirmed(!!v)} />
+            <label htmlFor="confirm" className="text-sm text-foreground cursor-pointer">
+              Confirmo que os dados estão corretos
+            </label>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <div className="flex justify-between pt-4 border-t border-border">
+        <div>
+          {step > 0 && (
+            <Button variant="outline" onClick={goBack}>
+              <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
+            </Button>
+          )}
+        </div>
+        <div className="flex gap-3">
+          {step < 2 ? (
+            <Button onClick={goNext} disabled={isSaving}>
+              {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Continuar <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          ) : (
+            <>
+              <Button variant="outline" onClick={handleSaveDraft} disabled={isSaving}>
+                {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Salvar Rascunho
+              </Button>
+              <Button onClick={handleGenerate} disabled={isSaving || !confirmed}>
+                {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Gerar Documentos
+              </Button>
+            </>
+          )}
+        </div>
       </div>
+
+      <ClienteModal open={clientModalOpen} onOpenChange={setClientModalOpen} />
     </div>
   );
 };
