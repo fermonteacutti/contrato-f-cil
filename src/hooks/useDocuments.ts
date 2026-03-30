@@ -44,54 +44,53 @@ function buildRenderData(process: any) {
   const fd = process.form_data || {};
   const client = process.clients || {};
   const endereco = fd.endereco || {};
-  const socios = fd.socios || [];
 
   return {
-    // Cliente
-    cliente_nome: client.name || "",
-    cliente_cpf: client.cpf || "",
-    cliente_rg: client.rg || "",
-    cliente_email: client.email || "",
-    cliente_telefone: client.phone || "",
-    cliente_nacionalidade: client.nationality || "brasileira",
-    cliente_estado_civil: client.marital_status || "",
-
-    // Empresa
-    nome_empresarial: fd.nome_empresarial || "",
-    objeto_social: fd.objeto_social || "",
-    cnae_principal: fd.cnae_principal || "",
-    capital_social: fd.capital_social || "",
-    data_inicio: fd.data_inicio || "",
-
-    // Endereço
-    cep: endereco.cep || "",
-    logradouro: endereco.logradouro || "",
-    numero: endereco.numero || "",
-    complemento: endereco.complemento || "",
-    bairro: endereco.bairro || "",
-    cidade: endereco.cidade || "",
-    estado: endereco.estado || "",
-    endereco_completo: [
+    NOME_EMPRESARIAL: fd.nome_empresarial ?? '',
+    OBJETO_SOCIAL: fd.objeto_social ?? '',
+    CNAE_PRINCIPAL: fd.cnae_principal ?? '',
+    CAPITAL_SOCIAL: fd.capital_social ?? '',
+    CAPITAL_SOCIAL_EXTENSO: `R$ ${fd.capital_social ?? ''}`,
+    DATA_INICIO_ATIVIDADES: fd.data_inicio ?? '',
+    PRAZO_SOCIEDADE: 'indeterminado',
+    ENDERECO_COMPLETO: [
       endereco.logradouro,
       endereco.numero,
       endereco.complemento,
       endereco.bairro,
-      endereco.cidade,
-      endereco.estado,
-      endereco.cep,
-    ].filter(Boolean).join(", "),
-
-    // Sócios
-    socios,
-    socio1_nome: socios[0]?.nome || "",
-    socio1_cpf: socios[0]?.cpf || "",
-    socio1_percentual: socios[0]?.percentual || "",
-    socio2_nome: socios[1]?.nome || "",
-    socio2_cpf: socios[1]?.cpf || "",
-    socio2_percentual: socios[1]?.percentual || "",
-
-    // Tipo
-    tipo_empresa: process.company_type || "",
+    ].filter(Boolean).join(', '),
+    CIDADE: endereco.cidade ?? '',
+    ESTADO: endereco.estado ?? 'SP',
+    CEP: endereco.cep ?? '',
+    DATA_EXTENSO: new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }),
+    PROCESSO_ID: process.id ?? '',
+    TITULAR_NOME: client.name ?? '',
+    TITULAR_CPF: client.cpf_cnpj ?? '',
+    TITULAR_RG: '',
+    TITULAR_RG_ORGAO: '',
+    TITULAR_NACIONALIDADE: 'brasileiro(a)',
+    TITULAR_ESTADO_CIVIL: '',
+    TITULAR_PROFISSAO: '',
+    TITULAR_ENDERECO_COMPLETO: client.address
+      ? [client.address.logradouro, client.address.numero, client.address.bairro, client.address.cidade].filter(Boolean).join(', ')
+      : '',
+    EMPRESARIO_NOME: client.name ?? '',
+    EMPRESARIO_CPF: client.cpf_cnpj ?? '',
+    EMPRESARIO_RG: '',
+    EMPRESARIO_RG_ORGAO: '',
+    EMPRESARIO_RG_UF: 'SP',
+    EMPRESARIO_NACIONALIDADE: 'brasileiro(a)',
+    EMPRESARIO_ESTADO_CIVIL: '',
+    EMPRESARIO_PROFISSAO: '',
+    EMPRESARIO_NASCIMENTO: '',
+    EMPRESARIO_TELEFONE: client.phone ?? '',
+    EMPRESARIO_EMAIL: client.email ?? '',
+    EMPRESARIO_ENDERECO_COMPLETO: '',
+    EMPRESA_TELEFONE: client.phone ?? '',
+    EMPRESA_EMAIL: client.email ?? '',
+    ADMINISTRADOR_NOME: client.name ?? '',
+    ADMINISTRADOR_CPF: client.cpf_cnpj ?? '',
+    TOTAL_COTAS: '100',
   };
 }
 
