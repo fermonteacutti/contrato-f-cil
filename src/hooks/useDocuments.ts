@@ -7,12 +7,12 @@ import type { CompanyType } from "@/hooks/useProcesses";
 export interface Document {
   id: string;
   process_id: string;
-  template_id: string | null;
-  name: string;
+  user_id: string;
+  document_type: string | null;
+  file_name: string;
   file_path: string | null;
-  status: string;
+  template_version: string | null;
   created_at: string;
-  updated_at: string;
 }
 
 const templatesByType: Record<string, { file: string; name: string }[]> = {
@@ -137,7 +137,7 @@ export const useDocuments = (processId: string) => {
       const renderData = buildRenderData(process);
 
       // 3. Para cada template: baixar, renderizar e fazer upload
-      const generatedDocs: { name: string; file_path: string }[] = [];
+      const generatedDocs: { file_name: string; file_path: string }[] = [];
 
       for (const tpl of templates) {
         const buffer = await fetchTemplateBuffer(tpl.file);
@@ -166,15 +166,16 @@ export const useDocuments = (processId: string) => {
           });
         if (uploadError) throw new Error(`Erro ao fazer upload de ${tpl.name}: ${uploadError.message}`);
 
-        generatedDocs.push({ name: tpl.name, file_path: filePath });
+        generatedDocs.push({ file_name: tpl.name, file_path: filePath });
       }
 
       // 5. Registrar na tabela documents
       const docsToInsert = generatedDocs.map((d) => ({
         process_id: processId,
-        name: d.name,
+        user_id: user.id,
+        file_name: d.file_name,
         file_path: d.file_path,
-        status: "gerado",
+        document_type: process.company_type || null,
       }));
 
       const { error: insertError } = await supabase
