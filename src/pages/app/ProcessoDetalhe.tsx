@@ -226,7 +226,7 @@ const ProcessoDetalhe = () => {
                           <FileText className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-foreground">{doc.name}</p>
+                          <p className="text-sm font-medium text-foreground">{doc.file_name}</p>
                           <p className="text-xs text-muted-foreground">
                             {format(new Date(doc.created_at), "dd/MM/yyyy HH:mm")}
                           </p>
