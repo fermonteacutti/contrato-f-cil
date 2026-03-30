@@ -137,7 +137,7 @@ export const useDocuments = (processId: string) => {
       const renderData = buildRenderData(process);
 
       // 3. Para cada template: baixar, renderizar e fazer upload
-      const generatedDocs: { name: string; file_path: string }[] = [];
+      const generatedDocs: { file_name: string; file_path: string }[] = [];
 
       for (const tpl of templates) {
         const buffer = await fetchTemplateBuffer(tpl.file);
