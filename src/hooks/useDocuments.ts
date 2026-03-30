@@ -169,19 +169,23 @@ export const useDocuments = (processId: string) => {
         generatedDocs.push({ file_name: tpl.name, file_path: filePath });
       }
 
-      // 5. Registrar na tabela documents
-      const docsToInsert = generatedDocs.map((d) => ({
-        process_id: processId,
-        user_id: user.id,
-        file_name: d.file_name,
-        file_path: d.file_path,
-        document_type: process.company_type || null,
-      }));
-
-      const { error: insertError } = await supabase
-        .from("documents")
-        .insert(docsToInsert);
-      if (insertError) throw new Error(`Erro ao registrar documentos: ${insertError.message}`);
+      // 5. Registrar na tabela documents (upsert para evitar duplicatas)
+      for (const d of generatedDocs) {
+        const { error: upsertError } = await supabase
+          .from("documents")
+          .upsert(
+            {
+              process_id: processId,
+              user_id: user.id,
+              document_type: process.company_type || null,
+              file_name: d.file_name,
+              file_path: d.file_path,
+              template_version: "2024-v1",
+            },
+            { onConflict: "process_id,document_type" }
+          );
+        if (upsertError) throw new Error(`Erro ao registrar documento ${d.file_name}: ${upsertError.message}`);
+      }
 
       // 6. Atualizar status do processo para 'docs_gerados'
       const { error: updateError } = await supabase
