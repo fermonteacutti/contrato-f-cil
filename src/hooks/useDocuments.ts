@@ -166,7 +166,7 @@ export const useDocuments = (processId: string) => {
           });
         if (uploadError) throw new Error(`Erro ao fazer upload de ${tpl.name}: ${uploadError.message}`);
 
-        generatedDocs.push({ name: tpl.name, file_path: filePath });
+        generatedDocs.push({ file_name: tpl.name, file_path: filePath });
       }
 
       // 5. Registrar na tabela documents
