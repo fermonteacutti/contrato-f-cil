@@ -15,20 +15,16 @@ export interface Document {
   created_at: string;
 }
 
-const templatesByType: Record<string, { file: string; name: string }[]> = {
-  slu: [
-    { file: "ato_constitutivo_slu.docx", name: "Ato Constitutivo SLU" },
-    { file: "checklist_jucesp_slu.docx", name: "Checklist JUCESP SLU" },
-  ],
-  ei: [
-    { file: "requerimento_ei.docx", name: "Requerimento EI" },
-    { file: "checklist_jucesp_ei.docx", name: "Checklist JUCESP EI" },
-  ],
-  ltda: [
-    { file: "contrato_social_ltda.docx", name: "Contrato Social LTDA" },
-    { file: "checklist_jucesp_ltda.docx", name: "Checklist JUCESP LTDA" },
-  ],
+const TEMPLATES_MAP: Record<string, string[]> = {
+  mei:  ['guia_mei', 'checklist_redesim_mei'],
+  ei:   ['requerimento_ei', 'checklist_jucesp_ei'],
+  slu:  ['ato_constitutivo_slu', 'checklist_jucesp_slu'],
+  ltda: ['contrato_social_ltda', 'checklist_jucesp_ltda'],
 };
+
+function formatTemplateName(templateType: string): string {
+  return templateType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
 
 async function fetchTemplateBuffer(templateFile: string): Promise<ArrayBuffer> {
   const { data, error } = await supabase.storage
