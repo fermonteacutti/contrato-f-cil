@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase, supabaseUrl } from "@/lib/supabase";
+import { supabase, supabaseUrl, supabaseAnonKey } from "@/lib/supabase";
 
 export interface Document {
   id: string;
@@ -42,6 +42,7 @@ export const useDocuments = (processId: string) => {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session.access_token}`,
+            apikey: supabaseAnonKey,
           },
           body: JSON.stringify({ process_id: processId }),
         }
