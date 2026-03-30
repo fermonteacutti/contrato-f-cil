@@ -123,19 +123,20 @@ export const useDocuments = (processId: string) => {
       if (!user) throw new Error("Não autenticado");
 
       const companyType = process.company_type as CompanyType;
-      const templates = templatesByType[companyType];
-      if (!templates || templates.length === 0) {
+      const templateTypes = TEMPLATES_MAP[companyType];
+      if (!templateTypes || templateTypes.length === 0) {
         throw new Error(`Nenhum template configurado para o tipo ${companyType}`);
       }
 
       // 2. Montar dados para renderização
       const renderData = buildRenderData(process);
 
-      // 3. Para cada template: baixar, renderizar e fazer upload
-      const generatedDocs: { file_name: string; file_path: string }[] = [];
+      // 3. Para cada template: baixar, renderizar, upload e registrar
+      const generatedDocs: { document_type: string; file_name: string; file_path: string }[] = [];
 
-      for (const tpl of templates) {
-        const buffer = await fetchTemplateBuffer(tpl.file);
+      for (const templateType of templateTypes) {
+        const bucketFile = `${templateType}.docx`;
+        const buffer = await fetchTemplateBuffer(bucketFile);
 
         const zip = new PizZip(buffer);
         const doc = new Docxtemplater(zip, {
@@ -150,21 +151,24 @@ export const useDocuments = (processId: string) => {
           mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         });
 
-        const filePath = `${user.id}/${processId}/${tpl.file}`;
+        const filePath = `${user.id}/${processId}/${bucketFile}`;
 
-        // 4. Upload para bucket 'documents'
         const { error: uploadError } = await supabase.storage
           .from("documents")
           .upload(filePath, blob, {
             upsert: true,
             contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
           });
-        if (uploadError) throw new Error(`Erro ao fazer upload de ${tpl.name}: ${uploadError.message}`);
+        if (uploadError) throw new Error(`Erro ao fazer upload de ${templateType}: ${uploadError.message}`);
 
-        generatedDocs.push({ file_name: tpl.name, file_path: filePath });
+        generatedDocs.push({
+          document_type: templateType,
+          file_name: formatTemplateName(templateType),
+          file_path: filePath,
+        });
       }
 
-      // 5. Registrar na tabela documents (upsert para evitar duplicatas)
+      // 5. Registrar na tabela documents (upsert com document_type único)
       for (const d of generatedDocs) {
         const { error: upsertError } = await supabase
           .from("documents")
@@ -172,7 +176,7 @@ export const useDocuments = (processId: string) => {
             {
               process_id: processId,
               user_id: user.id,
-              document_type: process.company_type || null,
+              document_type: d.document_type,
               file_name: d.file_name,
               file_path: d.file_path,
               template_version: "2024-v1",
