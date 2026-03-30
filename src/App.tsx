@@ -12,6 +12,7 @@ import Dashboard from "./pages/app/Dashboard.tsx";
 import Clientes from "./pages/app/Clientes.tsx";
 import Processos from "./pages/app/Processos.tsx";
 import NovoProcesso from "./pages/app/NovoProcesso.tsx";
+import ProcessoDetalhe from "./pages/app/ProcessoDetalhe.tsx";
 import ProtectedRoute from "./components/auth/ProtectedRoute.tsx";
 
 const queryClient = new QueryClient();
