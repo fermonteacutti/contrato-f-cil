@@ -1,14 +1,44 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FileText, ArrowLeft, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 const Cadastro = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [profileType, setProfileType] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profileType) {
+      toast.error("Selecione o tipo de perfil.");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: name, profile_type: profileType },
+        emailRedirectTo: window.location.origin,
+      },
+    });
+    setLoading(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Conta criada com sucesso!");
+      navigate("/app");
+    }
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -43,7 +73,7 @@ const Cadastro = () => {
           <h1 className="font-heading text-2xl font-bold text-foreground mb-2">Criar Conta</h1>
           <p className="text-muted-foreground text-sm mb-8">Preencha seus dados para começar</p>
 
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <Label htmlFor="name">Nome completo</Label>
               <Input
@@ -73,8 +103,21 @@ const Cadastro = () => {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-heading font-600" type="submit">
-              Criar Conta
+            <div className="space-y-2">
+              <Label>Tipo de perfil</Label>
+              <Select value={profileType} onValueChange={setProfileType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione seu perfil" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="contador">Contador</SelectItem>
+                  <SelectItem value="assessoria">Assessoria Empresarial</SelectItem>
+                  <SelectItem value="empreendedor">Empreendedor</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-heading font-600" type="submit" disabled={loading}>
+              {loading ? <><Loader2 className="animate-spin" /> Criando conta...</> : "Criar Conta"}
             </Button>
           </form>
 
