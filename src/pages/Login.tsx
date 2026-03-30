@@ -1,13 +1,29 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { FileText, ArrowLeft, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      navigate("/app");
+    }
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -42,7 +58,7 @@ const Login = () => {
           <h1 className="font-heading text-2xl font-bold text-foreground mb-2">Entrar</h1>
           <p className="text-muted-foreground text-sm mb-8">Acesse sua conta para continuar</p>
 
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
               <Input
@@ -66,8 +82,8 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-heading font-600" type="submit">
-              Entrar
+            <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-heading font-600" type="submit" disabled={loading}>
+              {loading ? <><Loader2 className="animate-spin" /> Entrando...</> : "Entrar"}
             </Button>
           </form>
 
