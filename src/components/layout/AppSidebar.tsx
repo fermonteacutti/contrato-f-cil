@@ -13,7 +13,6 @@ const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/app" },
   { label: "Clientes", icon: Users, href: "/app/clientes" },
   { label: "Processos", icon: ClipboardList, href: "/app/processos" },
-  { label: "Documentos", icon: FileText, href: "/app/documentos" },
   { label: "Planos", icon: CreditCard, href: "/app/planos" },
   { label: "Configurações", icon: Settings, href: "/app/configuracoes" },
 ];
