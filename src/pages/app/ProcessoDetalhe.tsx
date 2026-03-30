@@ -100,7 +100,7 @@ const ProcessoDetalhe = () => {
               {process.clients?.name || "Processo"}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {process.company_name || "Sem nome empresarial"}
+              {process.form_data?.nome_empresarial || "Sem nome empresarial"}
             </p>
           </div>
           <div className="flex items-center gap-2">
