@@ -35,9 +35,10 @@ const Processos = () => {
 
   const filtered = processes.filter((p) => {
     const clientName = p.clients?.name || "";
+    const companyName = p.form_data?.nome_empresarial || "";
     const matchesSearch =
       clientName.toLowerCase().includes(search.toLowerCase()) ||
-      (p.company_name || "").toLowerCase().includes(search.toLowerCase());
+      companyName.toLowerCase().includes(search.toLowerCase());
     const matchesType = filterType === "all" || p.company_type === filterType;
     const matchesStatus = filterStatus === "all" || p.status === filterStatus;
     return matchesSearch && matchesType && matchesStatus;
