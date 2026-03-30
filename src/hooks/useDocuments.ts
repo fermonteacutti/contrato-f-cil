@@ -42,6 +42,7 @@ export const useDocuments = (processId: string) => {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session.access_token}`,
+            apikey: supabaseAnonKey,
           },
           body: JSON.stringify({ process_id: processId }),
         }
