@@ -110,21 +110,22 @@ const NovoProcesso = () => {
     if (!editId || !processesQuery.data) return;
     const existing = processesQuery.data.find((p) => p.id === editId);
     if (!existing) return;
+    const fd = existing.form_data;
     form1.reset({ company_type: existing.company_type, client_id: existing.client_id });
     form2.reset({
-      company_name: existing.company_name || "",
-      business_activity: existing.business_activity || "",
-      cnae: existing.cnae || "",
-      cep: existing.address?.cep || "",
-      logradouro: existing.address?.logradouro || "",
-      numero: existing.address?.numero || "",
-      complemento: existing.address?.complemento || "",
-      bairro: existing.address?.bairro || "",
-      cidade: existing.address?.cidade || "",
-      estado: existing.address?.estado || "",
-      start_date: existing.start_date || "",
-      capital: existing.capital ? String(existing.capital) : "",
-      socios: existing.socios || [],
+      company_name: fd?.nome_empresarial || "",
+      business_activity: fd?.objeto_social || "",
+      cnae: fd?.cnae_principal || "",
+      cep: fd?.endereco?.cep || "",
+      logradouro: fd?.endereco?.logradouro || "",
+      numero: fd?.endereco?.numero || "",
+      complemento: fd?.endereco?.complemento || "",
+      bairro: fd?.endereco?.bairro || "",
+      cidade: fd?.endereco?.cidade || "",
+      estado: fd?.endereco?.estado || "",
+      start_date: fd?.data_inicio || "",
+      capital: fd?.capital_social || "",
+      socios: fd?.socios || [],
     });
   }, [editId, processesQuery.data]);
 
