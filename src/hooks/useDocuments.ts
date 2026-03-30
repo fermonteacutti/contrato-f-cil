@@ -7,12 +7,12 @@ import type { CompanyType } from "@/hooks/useProcesses";
 export interface Document {
   id: string;
   process_id: string;
-  template_id: string | null;
-  name: string;
+  user_id: string;
+  document_type: string | null;
+  file_name: string;
   file_path: string | null;
-  status: string;
+  template_version: string | null;
   created_at: string;
-  updated_at: string;
 }
 
 const templatesByType: Record<string, { file: string; name: string }[]> = {
