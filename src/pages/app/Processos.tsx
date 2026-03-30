@@ -25,6 +25,7 @@ const typeLabels: Record<CompanyType, string> = {
 };
 
 const Processos = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
