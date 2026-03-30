@@ -158,7 +158,7 @@ const NovoProcesso = () => {
       address: v2.cep ? { cep: v2.cep, logradouro: v2.logradouro, numero: v2.numero, complemento: v2.complemento, bairro: v2.bairro, cidade: v2.cidade, estado: v2.estado } : null,
       start_date: v2.start_date || null,
       capital: capitalStr ? parseFloat(capitalStr) : null,
-      socios: showSocios && v2.socios?.length ? v2.socios : null,
+      socios: showSocios && v2.socios?.length ? v2.socios.map(s => ({ nome: s.nome, cpf: s.cpf, percentual: Number(s.percentual) })) : null,
     };
   };
 
