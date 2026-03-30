@@ -110,21 +110,22 @@ const NovoProcesso = () => {
     if (!editId || !processesQuery.data) return;
     const existing = processesQuery.data.find((p) => p.id === editId);
     if (!existing) return;
+    const fd = existing.form_data;
     form1.reset({ company_type: existing.company_type, client_id: existing.client_id });
     form2.reset({
-      company_name: existing.company_name || "",
-      business_activity: existing.business_activity || "",
-      cnae: existing.cnae || "",
-      cep: existing.address?.cep || "",
-      logradouro: existing.address?.logradouro || "",
-      numero: existing.address?.numero || "",
-      complemento: existing.address?.complemento || "",
-      bairro: existing.address?.bairro || "",
-      cidade: existing.address?.cidade || "",
-      estado: existing.address?.estado || "",
-      start_date: existing.start_date || "",
-      capital: existing.capital ? String(existing.capital) : "",
-      socios: existing.socios || [],
+      company_name: fd?.nome_empresarial || "",
+      business_activity: fd?.objeto_social || "",
+      cnae: fd?.cnae_principal || "",
+      cep: fd?.endereco?.cep || "",
+      logradouro: fd?.endereco?.logradouro || "",
+      numero: fd?.endereco?.numero || "",
+      complemento: fd?.endereco?.complemento || "",
+      bairro: fd?.endereco?.bairro || "",
+      cidade: fd?.endereco?.cidade || "",
+      estado: fd?.endereco?.estado || "",
+      start_date: fd?.data_inicio || "",
+      capital: fd?.capital_social || "",
+      socios: fd?.socios || [],
     });
   }, [editId, processesQuery.data]);
 
@@ -147,18 +148,27 @@ const NovoProcesso = () => {
   const buildPayload = (status: string = "rascunho") => {
     const v1 = form1.getValues();
     const v2 = form2.getValues();
-    const capitalStr = v2.capital?.replace(/\./g, "").replace(",", ".");
+    const formData: Record<string, any> = {
+      nome_empresarial: v2.company_name || undefined,
+      objeto_social: v2.business_activity || undefined,
+      cnae_principal: v2.cnae || undefined,
+      data_inicio: v2.start_date || undefined,
+      capital_social: v2.capital || undefined,
+    };
+    if (v2.cep) {
+      formData.endereco = {
+        cep: v2.cep, logradouro: v2.logradouro, numero: v2.numero,
+        complemento: v2.complemento, bairro: v2.bairro, cidade: v2.cidade, estado: v2.estado,
+      };
+    }
+    if (showSocios && v2.socios?.length) {
+      formData.socios = v2.socios.map(s => ({ nome: s.nome, cpf: s.cpf, percentual: Number(s.percentual) }));
+    }
     return {
       client_id: v1.client_id,
       company_type: v1.company_type,
       status: status as any,
-      company_name: v2.company_name || null,
-      business_activity: v2.business_activity || null,
-      cnae: v2.cnae || null,
-      address: v2.cep ? { cep: v2.cep, logradouro: v2.logradouro, numero: v2.numero, complemento: v2.complemento, bairro: v2.bairro, cidade: v2.cidade, estado: v2.estado } : null,
-      start_date: v2.start_date || null,
-      capital: capitalStr ? parseFloat(capitalStr) : null,
-      socios: showSocios && v2.socios?.length ? v2.socios.map(s => ({ nome: s.nome, cpf: s.cpf, percentual: Number(s.percentual) })) : null,
+      form_data: formData,
     };
   };
 

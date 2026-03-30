@@ -100,7 +100,7 @@ const ProcessoDetalhe = () => {
               {process.clients?.name || "Processo"}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {process.company_name || "Sem nome empresarial"}
+              {process.form_data?.nome_empresarial || "Sem nome empresarial"}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -124,51 +124,49 @@ const ProcessoDetalhe = () => {
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Atividade:</span>
-                  <span className="text-foreground text-right max-w-[60%]">{process.business_activity || "—"}</span>
+                  <span className="text-foreground text-right max-w-[60%]">{process.form_data?.objeto_social || "—"}</span>
                 </div>
-                {process.cnae && (
+                {process.form_data?.cnae_principal && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">CNAE:</span>
-                    <span className="text-foreground">{process.cnae}</span>
+                    <span className="text-foreground">{process.form_data.cnae_principal}</span>
                   </div>
                 )}
-                {process.start_date && (
+                {process.form_data?.data_inicio && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Início:</span>
-                    <span className="text-foreground">{process.start_date}</span>
+                    <span className="text-foreground">{process.form_data.data_inicio}</span>
                   </div>
                 )}
-                {process.capital != null && (
+                {process.form_data?.capital_social && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Capital:</span>
-                    <span className="text-foreground">
-                      R$ {Number(process.capital).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </span>
+                    <span className="text-foreground">R$ {process.form_data.capital_social}</span>
                   </div>
                 )}
               </div>
             </CardContent>
           </Card>
 
-          {process.address && (
+          {process.form_data?.endereco && (
             <Card className="border-border/50">
               <CardContent className="p-5 space-y-2">
                 <h3 className="text-sm font-medium text-muted-foreground">Endereço</h3>
                 <p className="text-sm text-foreground">
-                  {[process.address.logradouro, process.address.numero, process.address.complemento,
-                    process.address.bairro, process.address.cidade, process.address.estado, process.address.cep]
+                  {[process.form_data.endereco.logradouro, process.form_data.endereco.numero, process.form_data.endereco.complemento,
+                    process.form_data.endereco.bairro, process.form_data.endereco.cidade, process.form_data.endereco.estado, process.form_data.endereco.cep]
                     .filter(Boolean).join(", ")}
                 </p>
               </CardContent>
             </Card>
           )}
 
-          {process.socios && process.socios.length > 0 && (
+          {process.form_data?.socios && process.form_data.socios.length > 0 && (
             <Card className="border-border/50 md:col-span-2">
               <CardContent className="p-5 space-y-2">
                 <h3 className="text-sm font-medium text-muted-foreground">Sócios</h3>
                 <div className="space-y-2">
-                  {process.socios.map((s, i) => (
+                  {process.form_data.socios.map((s, i) => (
                     <div key={i} className="flex items-center justify-between text-sm border-b border-border/50 pb-2 last:border-0 last:pb-0">
                       <div>
                         <span className="text-foreground font-medium">{s.nome}</span>

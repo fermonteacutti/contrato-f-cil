@@ -20,25 +20,34 @@ export interface ProcessAddress {
   estado?: string;
 }
 
+export interface ProcessFormData {
+  nome_empresarial?: string;
+  objeto_social?: string;
+  cnae_principal?: string;
+  capital_social?: string;
+  data_inicio?: string;
+  endereco?: ProcessAddress;
+  socios?: ProcessSocio[];
+}
+
 export interface Process {
   id: string;
   user_id: string;
   client_id: string;
   company_type: CompanyType;
   status: ProcessStatus;
-  company_name: string | null;
-  business_activity: string | null;
-  cnae: string | null;
-  address: ProcessAddress | null;
-  start_date: string | null;
-  capital: number | null;
-  socios: ProcessSocio[] | null;
+  form_data: ProcessFormData | null;
   created_at: string;
   updated_at: string;
   clients?: { name: string } | null;
 }
 
-export type ProcessInput = Omit<Process, "id" | "user_id" | "created_at" | "updated_at" | "clients">;
+export interface ProcessInput {
+  client_id: string;
+  company_type: CompanyType;
+  status: ProcessStatus;
+  form_data?: ProcessFormData | null;
+}
 
 const PROCESSES_KEY = ["processes"];
 
@@ -58,7 +67,7 @@ export const useProcesses = () => {
   });
 
   const createProcess = useMutation({
-    mutationFn: async (input: Omit<ProcessInput, "client_id"> & { client_id: string }) => {
+    mutationFn: async (input: ProcessInput) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Não autenticado");
       const { data, error } = await supabase
