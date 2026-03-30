@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseUrl } from "@/lib/supabase";
 
 export interface Document {
   id: string;
@@ -36,7 +36,7 @@ export const useDocuments = (processId: string) => {
       if (!session) throw new Error("Não autenticado");
 
       const res = await fetch(
-        "https://pafbyysujmeuhnvpmokq.supabase.co/functions/v1/generate-documents",
+        `${supabaseUrl}/functions/v1/generate-documents`,
         {
           method: "POST",
           headers: {
