@@ -12,6 +12,7 @@ import Dashboard from "./pages/app/Dashboard.tsx";
 import Clientes from "./pages/app/Clientes.tsx";
 import Processos from "./pages/app/Processos.tsx";
 import NovoProcesso from "./pages/app/NovoProcesso.tsx";
+import ProcessoDetalhe from "./pages/app/ProcessoDetalhe.tsx";
 import ProtectedRoute from "./components/auth/ProtectedRoute.tsx";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="clientes" element={<Clientes />} />
               <Route path="processos" element={<Processos />} />
               <Route path="processos/novo" element={<NovoProcesso />} />
+              <Route path="processos/:id" element={<ProcessoDetalhe />} />
             </Route>
           </Route>
           <Route path="*" element={<NotFound />} />

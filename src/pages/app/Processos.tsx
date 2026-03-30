@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Search, FileText, Loader2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useProcesses, ProcessStatus, CompanyType } from "@/hooks/useProcesses";
 import { format } from "date-fns";
@@ -25,6 +25,7 @@ const typeLabels: Record<CompanyType, string> = {
 };
 
 const Processos = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -136,7 +137,7 @@ const Processos = () => {
               {filtered.map((process) => {
                 const sc = statusConfig[process.status] || statusConfig.rascunho;
                 return (
-                  <TableRow key={process.id}>
+                  <TableRow key={process.id} className="cursor-pointer" onClick={() => navigate(`/app/processos/${process.id}`)}>
                     <TableCell>
                       <div>
                         <p className="font-medium text-foreground">{process.clients?.name || "—"}</p>
@@ -157,8 +158,8 @@ const Processos = () => {
                       {format(new Date(process.created_at), "dd/MM/yyyy")}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link to={`/app/processos/novo?id=${process.id}`}>Editar</Link>
+                      <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/app/processos/novo?id=${process.id}`); }}>
+                        Editar
                       </Button>
                     </TableCell>
                   </TableRow>
