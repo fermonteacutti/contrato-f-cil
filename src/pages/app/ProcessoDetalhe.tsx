@@ -148,25 +148,25 @@ const ProcessoDetalhe = () => {
             </CardContent>
           </Card>
 
-          {process.address && (
+          {process.form_data?.endereco && (
             <Card className="border-border/50">
               <CardContent className="p-5 space-y-2">
                 <h3 className="text-sm font-medium text-muted-foreground">Endereço</h3>
                 <p className="text-sm text-foreground">
-                  {[process.address.logradouro, process.address.numero, process.address.complemento,
-                    process.address.bairro, process.address.cidade, process.address.estado, process.address.cep]
+                  {[process.form_data.endereco.logradouro, process.form_data.endereco.numero, process.form_data.endereco.complemento,
+                    process.form_data.endereco.bairro, process.form_data.endereco.cidade, process.form_data.endereco.estado, process.form_data.endereco.cep]
                     .filter(Boolean).join(", ")}
                 </p>
               </CardContent>
             </Card>
           )}
 
-          {process.socios && process.socios.length > 0 && (
+          {process.form_data?.socios && process.form_data.socios.length > 0 && (
             <Card className="border-border/50 md:col-span-2">
               <CardContent className="p-5 space-y-2">
                 <h3 className="text-sm font-medium text-muted-foreground">Sócios</h3>
                 <div className="space-y-2">
-                  {process.socios.map((s, i) => (
+                  {process.form_data.socios.map((s, i) => (
                     <div key={i} className="flex items-center justify-between text-sm border-b border-border/50 pb-2 last:border-0 last:pb-0">
                       <div>
                         <span className="text-foreground font-medium">{s.nome}</span>

@@ -142,8 +142,8 @@ const Processos = () => {
                     <TableCell>
                       <div>
                         <p className="font-medium text-foreground">{process.clients?.name || "—"}</p>
-                        {process.company_name && (
-                          <p className="text-xs text-muted-foreground">{process.company_name}</p>
+                        {process.form_data?.nome_empresarial && (
+                          <p className="text-xs text-muted-foreground">{process.form_data.nome_empresarial}</p>
                         )}
                       </div>
                     </TableCell>
