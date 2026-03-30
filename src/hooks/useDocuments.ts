@@ -32,21 +32,29 @@ export const useDocuments = (processId: string) => {
 
   const generateDocuments = useMutation({
     mutationFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Não autenticado");
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
 
-      const res = await fetch(
-        `${supabaseUrl}/functions/v1/generate-documents`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-            apikey: supabaseAnonKey,
-          },
-          body: JSON.stringify({ process_id: processId }),
-        }
-      );
+      let accessToken = session?.access_token;
+      if (!accessToken) {
+        const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) throw refreshError;
+        accessToken = refreshed.session?.access_token;
+      }
+
+      if (!accessToken) throw new Error("Sessão expirada. Faça login novamente.");
+
+      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL || supabaseUrl}/functions/v1/generate-documents`;
+
+      const res = await fetch(functionUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || supabaseAnonKey,
+        },
+        body: JSON.stringify({ process_id: processId }),
+      });
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
