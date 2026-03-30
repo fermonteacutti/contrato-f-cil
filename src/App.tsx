@@ -12,6 +12,7 @@ import Dashboard from "./pages/app/Dashboard.tsx";
 import Clientes from "./pages/app/Clientes.tsx";
 import Processos from "./pages/app/Processos.tsx";
 import NovoProcesso from "./pages/app/NovoProcesso.tsx";
+import ProtectedRoute from "./components/auth/ProtectedRoute.tsx";
 
 const queryClient = new QueryClient();
 
@@ -25,11 +26,13 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
-          <Route path="/app" element={<AppLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="clientes" element={<Clientes />} />
-            <Route path="processos" element={<Processos />} />
-            <Route path="processos/novo" element={<NovoProcesso />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/app" element={<AppLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="clientes" element={<Clientes />} />
+              <Route path="processos" element={<Processos />} />
+              <Route path="processos/novo" element={<NovoProcesso />} />
+            </Route>
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
