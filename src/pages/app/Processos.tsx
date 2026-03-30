@@ -137,7 +137,7 @@ const Processos = () => {
               {filtered.map((process) => {
                 const sc = statusConfig[process.status] || statusConfig.rascunho;
                 return (
-                  <TableRow key={process.id}>
+                  <TableRow key={process.id} className="cursor-pointer" onClick={() => navigate(`/app/processos/${process.id}`)}>
                     <TableCell>
                       <div>
                         <p className="font-medium text-foreground">{process.clients?.name || "—"}</p>
@@ -158,8 +158,8 @@ const Processos = () => {
                       {format(new Date(process.created_at), "dd/MM/yyyy")}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link to={`/app/processos/novo?id=${process.id}`}>Editar</Link>
+                      <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/app/processos/novo?id=${process.id}`); }}>
+                        Editar
                       </Button>
                     </TableCell>
                   </TableRow>
