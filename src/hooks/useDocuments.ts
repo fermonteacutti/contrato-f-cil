@@ -172,9 +172,10 @@ export const useDocuments = (processId: string) => {
       // 5. Registrar na tabela documents
       const docsToInsert = generatedDocs.map((d) => ({
         process_id: processId,
-        name: d.name,
+        user_id: user.id,
+        file_name: d.file_name,
         file_path: d.file_path,
-        status: "gerado",
+        document_type: process.company_type || null,
       }));
 
       const { error: insertError } = await supabase
