@@ -67,7 +67,8 @@ const ProcessoDetalhe = () => {
     );
   }
 
-  const sc = statusConfig[process.status] || statusConfig.rascunho;
+  const scClass = statusColors[process.status] || "bg-muted text-muted-foreground";
+  const scLabel = statusLabels[process.status] || process.status;
 
   // Determine which protocol step is "current" based on status
   const statusStepMap: Record<ProcessStatus, number> = {
