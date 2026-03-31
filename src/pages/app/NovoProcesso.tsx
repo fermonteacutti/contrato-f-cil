@@ -611,7 +611,22 @@ const NovoProcesso = () => {
             </Card>
           )}
 
-          <div className="flex items-center gap-2">
+          {(summaryData.v2.rg || summaryData.v2.estado_civil || summaryData.v2.profissao || summaryData.v2.nascimento) && (
+            <Card className="border-border/50">
+              <CardContent className="p-5 space-y-3">
+                <h3 className="font-heading font-semibold text-foreground">Responsável Legal</h3>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {summaryData.v2.rg && (<><span className="text-muted-foreground">RG:</span><span className="text-foreground">{summaryData.v2.rg}</span></>)}
+                  {summaryData.v2.rg_orgao && (<><span className="text-muted-foreground">Órgão Emissor:</span><span className="text-foreground">{summaryData.v2.rg_orgao}</span></>)}
+                  {summaryData.v2.estado_civil && (<><span className="text-muted-foreground">Estado Civil:</span><span className="text-foreground">{summaryData.v2.estado_civil}</span></>)}
+                  {summaryData.v2.regime_bens && (<><span className="text-muted-foreground">Regime de Bens:</span><span className="text-foreground">{summaryData.v2.regime_bens}</span></>)}
+                  {summaryData.v2.profissao && (<><span className="text-muted-foreground">Profissão:</span><span className="text-foreground">{summaryData.v2.profissao}</span></>)}
+                  {summaryData.v2.nascimento && (<><span className="text-muted-foreground">Nascimento:</span><span className="text-foreground">{summaryData.v2.nascimento}</span></>)}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
             <Checkbox id="confirm" checked={confirmed} onCheckedChange={(v) => setConfirmed(!!v)} />
             <label htmlFor="confirm" className="text-sm text-foreground cursor-pointer">
               Confirmo que os dados estão corretos
