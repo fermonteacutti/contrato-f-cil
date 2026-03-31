@@ -9,12 +9,6 @@ import { useState } from "react";
 import { useProcesses, ProcessStatus, CompanyType } from "@/hooks/useProcesses";
 import { statusLabels, statusColors, typeLabels, formatDateBR } from "@/lib/formatters";
 
-const typeLabels: Record<CompanyType, string> = {
-  mei: "MEI",
-  ei: "EI",
-  slu: "SLU",
-  ltda: "LTDA",
-};
 
 const Processos = () => {
   const navigate = useNavigate();
