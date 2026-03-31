@@ -28,6 +28,12 @@ export interface ProcessFormData {
   data_inicio?: string;
   endereco?: ProcessAddress;
   socios?: ProcessSocio[];
+  rg?: string;
+  rg_orgao?: string;
+  estado_civil?: string;
+  regime_bens?: string;
+  profissao?: string;
+  nascimento?: string;
 }
 
 export interface Process {

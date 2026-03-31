@@ -52,6 +52,12 @@ const step2Schema = z.object({
   start_date: z.string().optional().or(z.literal("")),
   capital: z.string().optional().or(z.literal("")),
   socios: z.array(socioSchema).optional(),
+  rg: z.string().optional().or(z.literal("")),
+  rg_orgao: z.string().optional().or(z.literal("")),
+  estado_civil: z.string().optional().or(z.literal("")),
+  regime_bens: z.string().optional().or(z.literal("")),
+  profissao: z.string().optional().or(z.literal("")),
+  nascimento: z.string().optional().or(z.literal("")),
 });
 
 // ── Masks ──────────────────────────────────────────────────
@@ -93,6 +99,7 @@ const NovoProcesso = () => {
       company_name: "", business_activity: "", cnae: "",
       cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "",
       start_date: "", capital: "", socios: [],
+      rg: "", rg_orgao: "", estado_civil: "", regime_bens: "", profissao: "", nascimento: "",
     },
   });
 
@@ -102,7 +109,9 @@ const NovoProcesso = () => {
   });
 
   const selectedType = form1.watch("company_type");
+  const estadoCivil = form2.watch("estado_civil");
   const showCapital = selectedType === "ei" || selectedType === "slu" || selectedType === "ltda";
+  const showRegimeBens = estadoCivil === "casado" || estadoCivil === "uniao_estavel";
   const showSocios = selectedType === "ltda";
 
   // Load existing process for edit
@@ -126,6 +135,12 @@ const NovoProcesso = () => {
       start_date: fd?.data_inicio || "",
       capital: fd?.capital_social || "",
       socios: fd?.socios || [],
+      rg: fd?.rg || "",
+      rg_orgao: fd?.rg_orgao || "",
+      estado_civil: fd?.estado_civil || "",
+      regime_bens: fd?.regime_bens || "",
+      profissao: fd?.profissao || "",
+      nascimento: fd?.nascimento || "",
     });
   }, [editId, processesQuery.data]);
 
@@ -154,6 +169,12 @@ const NovoProcesso = () => {
       cnae_principal: v2.cnae || undefined,
       data_inicio: v2.start_date || undefined,
       capital_social: v2.capital || undefined,
+      rg: v2.rg || undefined,
+      rg_orgao: v2.rg_orgao || undefined,
+      estado_civil: v2.estado_civil || undefined,
+      regime_bens: v2.regime_bens || undefined,
+      profissao: v2.profissao || undefined,
+      nascimento: v2.nascimento || undefined,
     };
     if (v2.cep) {
       formData.endereco = {
@@ -464,6 +485,72 @@ const NovoProcesso = () => {
                 ))}
               </div>
             )}
+
+            {/* Responsável Legal */}
+            <div className="border-t border-border pt-4">
+              <p className="text-sm font-medium text-foreground mb-3">Dados do Responsável Legal</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField control={form2.control} name="rg" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>RG</FormLabel>
+                    <FormControl><Input placeholder="Ex: 12.345.678-9" {...field} /></FormControl>
+                  </FormItem>
+                )} />
+                <FormField control={form2.control} name="rg_orgao" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Órgão Emissor</FormLabel>
+                    <FormControl><Input placeholder="Ex: SSP/SP" {...field} /></FormControl>
+                  </FormItem>
+                )} />
+                <FormField control={form2.control} name="estado_civil" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estado Civil</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="solteiro">Solteiro(a)</SelectItem>
+                        <SelectItem value="casado">Casado(a)</SelectItem>
+                        <SelectItem value="divorciado">Divorciado(a)</SelectItem>
+                        <SelectItem value="viuvo">Viúvo(a)</SelectItem>
+                        <SelectItem value="uniao_estavel">União Estável</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )} />
+                {showRegimeBens && (
+                  <FormField control={form2.control} name="regime_bens" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Regime de Bens</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="comunhao_parcial">Comunhão Parcial</SelectItem>
+                          <SelectItem value="comunhao_universal">Comunhão Universal</SelectItem>
+                          <SelectItem value="separacao_total">Separação Total</SelectItem>
+                          <SelectItem value="participacao_final">Participação Final nos Aquestos</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )} />
+                )}
+                <FormField control={form2.control} name="profissao" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Profissão</FormLabel>
+                    <FormControl><Input placeholder="Ex: Empresário" {...field} /></FormControl>
+                  </FormItem>
+                )} />
+                <FormField control={form2.control} name="nascimento" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Data de Nascimento</FormLabel>
+                    <FormControl><Input type="date" {...field} /></FormControl>
+                  </FormItem>
+                )} />
+              </div>
+            </div>
           </form>
         </Form>
       )}
@@ -520,6 +607,22 @@ const NovoProcesso = () => {
                     <span className="font-medium text-foreground">{s.percentual}%</span>
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {(summaryData.v2.rg || summaryData.v2.estado_civil || summaryData.v2.profissao || summaryData.v2.nascimento) && (
+            <Card className="border-border/50">
+              <CardContent className="p-5 space-y-3">
+                <h3 className="font-heading font-semibold text-foreground">Responsável Legal</h3>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {summaryData.v2.rg && (<><span className="text-muted-foreground">RG:</span><span className="text-foreground">{summaryData.v2.rg}</span></>)}
+                  {summaryData.v2.rg_orgao && (<><span className="text-muted-foreground">Órgão Emissor:</span><span className="text-foreground">{summaryData.v2.rg_orgao}</span></>)}
+                  {summaryData.v2.estado_civil && (<><span className="text-muted-foreground">Estado Civil:</span><span className="text-foreground">{summaryData.v2.estado_civil}</span></>)}
+                  {summaryData.v2.regime_bens && (<><span className="text-muted-foreground">Regime de Bens:</span><span className="text-foreground">{summaryData.v2.regime_bens}</span></>)}
+                  {summaryData.v2.profissao && (<><span className="text-muted-foreground">Profissão:</span><span className="text-foreground">{summaryData.v2.profissao}</span></>)}
+                  {summaryData.v2.nascimento && (<><span className="text-muted-foreground">Nascimento:</span><span className="text-foreground">{summaryData.v2.nascimento}</span></>)}
+                </div>
               </CardContent>
             </Card>
           )}
