@@ -62,11 +62,14 @@ function buildRenderData(process: any) {
     PROCESSO_ID: process.id ?? '',
     TITULAR_NOME: client.name ?? '',
     TITULAR_CPF: client.cpf_cnpj ?? '',
-    TITULAR_RG: '',
-    TITULAR_RG_ORGAO: '',
+    TITULAR_RG: fd.rg ?? '',
+    TITULAR_RG_ORGAO: fd.rg_orgao ?? '',
     TITULAR_NACIONALIDADE: 'brasileiro(a)',
-    TITULAR_ESTADO_CIVIL: '',
-    TITULAR_PROFISSAO: '',
+    TITULAR_ESTADO_CIVIL: fd.estado_civil ?? '',
+    TITULAR_REGIME_BENS: fd.regime_bens ?? '',
+    TITULAR_PROFISSAO: fd.profissao ?? '',
+    TITULAR_NASCIMENTO: fd.nascimento ?? '',
+    TITULAR_EMAIL: client.email ?? '',
     TITULAR_ENDERECO_COMPLETO: client.address
       ? [client.address.logradouro, client.address.numero, client.address.bairro, client.address.cidade].filter(Boolean).join(', ')
       : '',
