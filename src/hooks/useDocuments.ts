@@ -132,12 +132,16 @@ export const useDocuments = (processId: string) => {
       const renderData = buildRenderData(process);
 
       // 3. Para cada template: baixar, renderizar, upload e registrar
-      const generatedDocs: { document_type: string; file_name: string; file_path: string }[] = [];
-
       for (const templateType of templateTypes) {
-        const bucketFile = `${templateType}.docx`;
-        const buffer = await fetchTemplateBuffer(bucketFile);
+        const templateFileName = `${templateType}.docx`;
+        const documentType = templateType; // ex: 'ato_constitutivo_slu', NUNCA company_type
+        const filePath = `${user.id}/${processId}/${templateFileName}`;
+        const displayName = templateType.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
+        // Baixar template
+        const buffer = await fetchTemplateBuffer(templateFileName);
+
+        // Renderizar com docxtemplater
         const zip = new PizZip(buffer);
         const doc = new Docxtemplater(zip, {
           delimiters: { start: "{{", end: "}}" },
@@ -151,49 +155,38 @@ export const useDocuments = (processId: string) => {
           mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         });
 
-        const filePath = `${user.id}/${processId}/${bucketFile}`;
-
+        // Upload para storage
         const { error: uploadError } = await supabase.storage
           .from("documents")
           .upload(filePath, blob, {
             upsert: true,
             contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
           });
-        if (uploadError) throw new Error(`Erro ao fazer upload de ${templateType}: ${uploadError.message}`);
+        if (uploadError) throw new Error(`Erro ao fazer upload de ${documentType}: ${uploadError.message}`);
 
-        generatedDocs.push({
-          document_type: templateType,
-          file_name: formatTemplateName(templateType),
-          file_path: filePath,
-        });
-      }
-
-      // 5. Registrar na tabela documents (upsert com document_type único)
-      for (const d of generatedDocs) {
+        // Registrar no banco com document_type = templateType (único por documento)
         const { error: upsertError } = await supabase
           .from("documents")
           .upsert(
             {
               process_id: processId,
               user_id: user.id,
-              document_type: d.document_type,
-              file_name: d.file_name,
-              file_path: d.file_path,
+              document_type: documentType,
+              file_name: displayName,
+              file_path: filePath,
               template_version: "2024-v1",
             },
             { onConflict: "process_id,document_type" }
           );
-        if (upsertError) throw new Error(`Erro ao registrar documento ${d.file_name}: ${upsertError.message}`);
+        if (upsertError) throw new Error(`Erro ao registrar documento ${displayName}: ${upsertError.message}`);
       }
 
-      // 6. Atualizar status do processo para 'docs_gerados'
+      // Atualizar status do processo para 'docs_gerados'
       const { error: updateError } = await supabase
         .from("processes")
         .update({ status: "docs_gerados", updated_at: new Date().toISOString() })
         .eq("id", processId);
       if (updateError) throw new Error(`Erro ao atualizar status: ${updateError.message}`);
-
-      return generatedDocs;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: DOCS_KEY });
