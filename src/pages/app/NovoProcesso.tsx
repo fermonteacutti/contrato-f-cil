@@ -167,6 +167,12 @@ const NovoProcesso = () => {
       cnae_principal: v2.cnae || undefined,
       data_inicio: v2.start_date || undefined,
       capital_social: v2.capital || undefined,
+      rg: v2.rg || undefined,
+      rg_orgao: v2.rg_orgao || undefined,
+      estado_civil: v2.estado_civil || undefined,
+      regime_bens: v2.regime_bens || undefined,
+      profissao: v2.profissao || undefined,
+      nascimento: v2.nascimento || undefined,
     };
     if (v2.cep) {
       formData.endereco = {
