@@ -109,7 +109,9 @@ const NovoProcesso = () => {
   });
 
   const selectedType = form1.watch("company_type");
+  const estadoCivil = form2.watch("estado_civil");
   const showCapital = selectedType === "ei" || selectedType === "slu" || selectedType === "ltda";
+  const showRegimeBens = estadoCivil === "casado" || estadoCivil === "uniao_estavel";
   const showSocios = selectedType === "ltda";
 
   // Load existing process for edit
