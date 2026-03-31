@@ -1,11 +1,12 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, Users, FileText, ClipboardList, 
-  CreditCard, Settings, LogOut, ChevronLeft, ChevronRight 
+  CreditCard, Settings, LogOut, ChevronLeft, ChevronRight, Shield 
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
