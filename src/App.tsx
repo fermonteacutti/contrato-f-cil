@@ -13,6 +13,7 @@ import Clientes from "./pages/app/Clientes.tsx";
 import Processos from "./pages/app/Processos.tsx";
 import NovoProcesso from "./pages/app/NovoProcesso.tsx";
 import ProcessoDetalhe from "./pages/app/ProcessoDetalhe.tsx";
+import Settings from "./pages/app/Settings.tsx";
 import ProtectedRoute from "./components/auth/ProtectedRoute.tsx";
 import AdminRoute from "./components/auth/AdminRoute.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="processos" element={<Processos />} />
               <Route path="processos/novo" element={<NovoProcesso />} />
               <Route path="processos/:id" element={<ProcessoDetalhe />} />
+              <Route path="configuracoes" element={<Settings />} />
             </Route>
           </Route>
           <Route element={<AdminRoute />}>

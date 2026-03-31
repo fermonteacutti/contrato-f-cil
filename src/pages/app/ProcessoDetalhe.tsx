@@ -7,20 +7,8 @@ import { ArrowLeft, Download, FileText, Loader2, Sparkles, CheckCircle2, Circle 
 import { useProcesses, ProcessStatus, CompanyType } from "@/hooks/useProcesses";
 import { useDocuments } from "@/hooks/useDocuments";
 import { toast } from "sonner";
-import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-
-const statusConfig: Record<ProcessStatus, { label: string; className: string }> = {
-  rascunho: { label: "Rascunho", className: "bg-muted text-muted-foreground" },
-  aguardando_docs: { label: "Aguardando Docs", className: "bg-warning/15 text-warning border-warning/30" },
-  docs_gerados: { label: "Docs Gerados", className: "bg-info/15 text-info border-info/30" },
-  protocolado: { label: "Protocolado", className: "bg-primary/15 text-primary border-primary/30" },
-  concluido: { label: "Concluído", className: "bg-success/15 text-success border-success/30" },
-};
-
-const typeLabels: Record<CompanyType, string> = {
-  mei: "MEI", ei: "EI", slu: "SLU", ltda: "LTDA",
-};
+import { statusLabels, statusColors, typeLabels, formatDateBR, formatDateTimeBR } from "@/lib/formatters";
 
 const protocolSteps = [
   "Verificar dados e documentos gerados",
