@@ -1,11 +1,12 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, Users, FileText, ClipboardList, 
-  CreditCard, Settings, LogOut, ChevronLeft, ChevronRight 
+  CreditCard, Settings, LogOut, ChevronLeft, ChevronRight, Shield 
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -22,6 +23,7 @@ const AppSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { data: profile } = useProfile();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -70,6 +72,25 @@ const AppSidebar = () => {
             </Link>
           );
         })}
+
+        {/* Admin link — only for admins */}
+        {profile?.role === "admin" && (() => {
+          const isAdminActive = location.pathname.startsWith("/admin");
+          return (
+            <Link
+              to="/admin"
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                isAdminActive
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+              )}
+            >
+              <Shield className={cn("w-5 h-5 flex-shrink-0", isAdminActive && "text-sidebar-primary")} />
+              {!collapsed && <span>Admin</span>}
+            </Link>
+          );
+        })()}
       </nav>
 
       {/* Footer */}
