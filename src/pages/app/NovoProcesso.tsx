@@ -52,6 +52,12 @@ const step2Schema = z.object({
   start_date: z.string().optional().or(z.literal("")),
   capital: z.string().optional().or(z.literal("")),
   socios: z.array(socioSchema).optional(),
+  rg: z.string().optional().or(z.literal("")),
+  rg_orgao: z.string().optional().or(z.literal("")),
+  estado_civil: z.string().optional().or(z.literal("")),
+  regime_bens: z.string().optional().or(z.literal("")),
+  profissao: z.string().optional().or(z.literal("")),
+  nascimento: z.string().optional().or(z.literal("")),
 });
 
 // ── Masks ──────────────────────────────────────────────────
