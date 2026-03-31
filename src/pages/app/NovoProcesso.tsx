@@ -627,6 +627,7 @@ const NovoProcesso = () => {
             </Card>
           )}
 
+          <div className="flex items-center gap-2">
             <Checkbox id="confirm" checked={confirmed} onCheckedChange={(v) => setConfirmed(!!v)} />
             <label htmlFor="confirm" className="text-sm text-foreground cursor-pointer">
               Confirmo que os dados estão corretos
