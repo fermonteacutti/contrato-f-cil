@@ -96,7 +96,7 @@ const ProcessoDetalhe = () => {
             <Badge variant="outline" className="font-bold text-sm">
               {typeLabels[process.company_type]}
             </Badge>
-            <Badge className={cn("text-sm", sc.className)}>{sc.label}</Badge>
+            <Badge className={cn("text-sm", scClass)}>{scLabel}</Badge>
           </div>
         </div>
       </div>
