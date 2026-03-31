@@ -140,10 +140,10 @@ const Processos = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge className={sc.className}>{sc.label}</Badge>
+                      <Badge className={scClass}>{scLabel}</Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {format(new Date(process.created_at), "dd/MM/yyyy")}
+                      {formatDateBR(process.created_at)}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/app/processos/novo?id=${process.id}`); }}>

@@ -217,7 +217,7 @@ const ProcessoDetalhe = () => {
                         <div>
                           <p className="text-sm font-medium text-foreground">{doc.file_name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {format(new Date(doc.created_at), "dd/MM/yyyy HH:mm")}
+                            {formatDateTimeBR(doc.created_at)}
                           </p>
                         </div>
                       </div>
