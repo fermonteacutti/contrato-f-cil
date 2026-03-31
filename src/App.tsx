@@ -14,6 +14,10 @@ import Processos from "./pages/app/Processos.tsx";
 import NovoProcesso from "./pages/app/NovoProcesso.tsx";
 import ProcessoDetalhe from "./pages/app/ProcessoDetalhe.tsx";
 import ProtectedRoute from "./components/auth/ProtectedRoute.tsx";
+import AdminRoute from "./components/auth/AdminRoute.tsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
+import AdminUsers from "./pages/admin/AdminUsers.tsx";
+import AdminTemplates from "./pages/admin/AdminTemplates.tsx";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +38,13 @@ const App = () => (
               <Route path="processos" element={<Processos />} />
               <Route path="processos/novo" element={<NovoProcesso />} />
               <Route path="processos/:id" element={<ProcessoDetalhe />} />
+            </Route>
+          </Route>
+          <Route element={<AdminRoute />}>
+            <Route path="/admin" element={<AppLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="templates" element={<AdminTemplates />} />
             </Route>
           </Route>
           <Route path="*" element={<NotFound />} />

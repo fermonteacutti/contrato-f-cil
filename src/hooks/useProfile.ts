@@ -6,6 +6,9 @@ export interface Profile {
   credits_remaining: number;
   full_name?: string;
   profile_type?: string;
+  role?: string;
+  email?: string;
+  plan?: string;
 }
 
 const fetchProfile = async (): Promise<Profile | null> => {

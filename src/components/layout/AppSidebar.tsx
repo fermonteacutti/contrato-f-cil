@@ -23,6 +23,7 @@ const AppSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { data: profile } = useProfile();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
