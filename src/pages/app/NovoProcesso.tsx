@@ -99,6 +99,7 @@ const NovoProcesso = () => {
       company_name: "", business_activity: "", cnae: "",
       cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "",
       start_date: "", capital: "", socios: [],
+      rg: "", rg_orgao: "", estado_civil: "", regime_bens: "", profissao: "", nascimento: "",
     },
   });
 
