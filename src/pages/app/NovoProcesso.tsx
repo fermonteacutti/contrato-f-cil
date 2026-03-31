@@ -485,6 +485,72 @@ const NovoProcesso = () => {
                 ))}
               </div>
             )}
+
+            {/* Responsável Legal */}
+            <div className="border-t border-border pt-4">
+              <p className="text-sm font-medium text-foreground mb-3">Dados do Responsável Legal</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField control={form2.control} name="rg" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>RG</FormLabel>
+                    <FormControl><Input placeholder="Ex: 12.345.678-9" {...field} /></FormControl>
+                  </FormItem>
+                )} />
+                <FormField control={form2.control} name="rg_orgao" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Órgão Emissor</FormLabel>
+                    <FormControl><Input placeholder="Ex: SSP/SP" {...field} /></FormControl>
+                  </FormItem>
+                )} />
+                <FormField control={form2.control} name="estado_civil" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estado Civil</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="solteiro">Solteiro(a)</SelectItem>
+                        <SelectItem value="casado">Casado(a)</SelectItem>
+                        <SelectItem value="divorciado">Divorciado(a)</SelectItem>
+                        <SelectItem value="viuvo">Viúvo(a)</SelectItem>
+                        <SelectItem value="uniao_estavel">União Estável</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )} />
+                {showRegimeBens && (
+                  <FormField control={form2.control} name="regime_bens" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Regime de Bens</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="comunhao_parcial">Comunhão Parcial</SelectItem>
+                          <SelectItem value="comunhao_universal">Comunhão Universal</SelectItem>
+                          <SelectItem value="separacao_total">Separação Total</SelectItem>
+                          <SelectItem value="participacao_final">Participação Final nos Aquestos</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )} />
+                )}
+                <FormField control={form2.control} name="profissao" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Profissão</FormLabel>
+                    <FormControl><Input placeholder="Ex: Empresário" {...field} /></FormControl>
+                  </FormItem>
+                )} />
+                <FormField control={form2.control} name="nascimento" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Data de Nascimento</FormLabel>
+                    <FormControl><Input type="date" {...field} /></FormControl>
+                  </FormItem>
+                )} />
+              </div>
+            </div>
           </form>
         </Form>
       )}
