@@ -7,20 +7,8 @@ import { ArrowLeft, Download, FileText, Loader2, Sparkles, CheckCircle2, Circle 
 import { useProcesses, ProcessStatus, CompanyType } from "@/hooks/useProcesses";
 import { useDocuments } from "@/hooks/useDocuments";
 import { toast } from "sonner";
-import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-
-const statusConfig: Record<ProcessStatus, { label: string; className: string }> = {
-  rascunho: { label: "Rascunho", className: "bg-muted text-muted-foreground" },
-  aguardando_docs: { label: "Aguardando Docs", className: "bg-warning/15 text-warning border-warning/30" },
-  docs_gerados: { label: "Docs Gerados", className: "bg-info/15 text-info border-info/30" },
-  protocolado: { label: "Protocolado", className: "bg-primary/15 text-primary border-primary/30" },
-  concluido: { label: "Concluído", className: "bg-success/15 text-success border-success/30" },
-};
-
-const typeLabels: Record<CompanyType, string> = {
-  mei: "MEI", ei: "EI", slu: "SLU", ltda: "LTDA",
-};
+import { statusLabels, statusColors, typeLabels, formatDateBR, formatDateTimeBR } from "@/lib/formatters";
 
 const protocolSteps = [
   "Verificar dados e documentos gerados",
@@ -79,7 +67,8 @@ const ProcessoDetalhe = () => {
     );
   }
 
-  const sc = statusConfig[process.status] || statusConfig.rascunho;
+  const scClass = statusColors[process.status] || "bg-muted text-muted-foreground";
+  const scLabel = statusLabels[process.status] || process.status;
 
   // Determine which protocol step is "current" based on status
   const statusStepMap: Record<ProcessStatus, number> = {
@@ -107,7 +96,7 @@ const ProcessoDetalhe = () => {
             <Badge variant="outline" className="font-bold text-sm">
               {typeLabels[process.company_type]}
             </Badge>
-            <Badge className={cn("text-sm", sc.className)}>{sc.label}</Badge>
+            <Badge className={cn("text-sm", scClass)}>{scLabel}</Badge>
           </div>
         </div>
       </div>
@@ -228,7 +217,7 @@ const ProcessoDetalhe = () => {
                         <div>
                           <p className="text-sm font-medium text-foreground">{doc.file_name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {format(new Date(doc.created_at), "dd/MM/yyyy HH:mm")}
+                            {formatDateTimeBR(doc.created_at)}
                           </p>
                         </div>
                       </div>
