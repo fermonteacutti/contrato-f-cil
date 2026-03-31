@@ -122,7 +122,8 @@ const Processos = () => {
             </TableHeader>
             <TableBody>
               {filtered.map((process) => {
-                const sc = statusConfig[process.status] || statusConfig.rascunho;
+                const scClass = statusColors[process.status] || "bg-muted text-muted-foreground";
+                const scLabel = statusLabels[process.status] || process.status;
                 return (
                   <TableRow key={process.id} className="cursor-pointer" onClick={() => navigate(`/app/processos/${process.id}`)}>
                     <TableCell>
