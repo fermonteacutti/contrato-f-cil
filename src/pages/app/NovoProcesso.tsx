@@ -133,6 +133,12 @@ const NovoProcesso = () => {
       start_date: fd?.data_inicio || "",
       capital: fd?.capital_social || "",
       socios: fd?.socios || [],
+      rg: fd?.rg || "",
+      rg_orgao: fd?.rg_orgao || "",
+      estado_civil: fd?.estado_civil || "",
+      regime_bens: fd?.regime_bens || "",
+      profissao: fd?.profissao || "",
+      nascimento: fd?.nascimento || "",
     });
   }, [editId, processesQuery.data]);
 
