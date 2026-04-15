@@ -157,8 +157,9 @@ const ClienteModal = ({ open, onOpenChange, client, onClientCreated }: ClienteMo
         await updateClient.mutateAsync({ id: client.id, ...payload });
         toast.success("Cliente atualizado com sucesso!");
       } else {
-        await createClient.mutateAsync(payload);
+        const created = await createClient.mutateAsync(payload);
         toast.success("Cliente cadastrado com sucesso!");
+        onClientCreated?.(created.id);
       }
       onOpenChange(false);
     } catch (err: any) {
