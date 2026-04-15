@@ -32,6 +32,7 @@ interface ClienteModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   client?: Client | null;
+  onClientCreated?: (clientId: string) => void;
 }
 
 // Masks
