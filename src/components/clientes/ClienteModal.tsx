@@ -32,6 +32,7 @@ interface ClienteModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   client?: Client | null;
+  onClientCreated?: (clientId: string) => void;
 }
 
 // Masks
@@ -67,7 +68,7 @@ const maskCep = (value: string) => {
   return digits.replace(/(\d{5})(\d)/, "$1-$2");
 };
 
-const ClienteModal = ({ open, onOpenChange, client }: ClienteModalProps) => {
+const ClienteModal = ({ open, onOpenChange, client, onClientCreated }: ClienteModalProps) => {
   const { createClient, updateClient } = useClients();
   const isEditing = !!client;
 
@@ -156,8 +157,9 @@ const ClienteModal = ({ open, onOpenChange, client }: ClienteModalProps) => {
         await updateClient.mutateAsync({ id: client.id, ...payload });
         toast.success("Cliente atualizado com sucesso!");
       } else {
-        await createClient.mutateAsync(payload);
+        const created = await createClient.mutateAsync(payload);
         toast.success("Cliente cadastrado com sucesso!");
+        onClientCreated?.(created.id);
       }
       onOpenChange(false);
     } catch (err: any) {
