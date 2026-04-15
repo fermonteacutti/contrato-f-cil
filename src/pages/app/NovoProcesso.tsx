@@ -677,7 +677,13 @@ const NovoProcesso = () => {
         </div>
       </div>
 
-      <ClienteModal open={clientModalOpen} onOpenChange={setClientModalOpen} />
+      <ClienteModal
+        open={clientModalOpen}
+        onOpenChange={setClientModalOpen}
+        onClientCreated={(clientId: string) => {
+          form1.setValue("client_id", clientId);
+        }}
+      />
     </div>
   );
 };
