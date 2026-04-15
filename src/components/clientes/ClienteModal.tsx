@@ -68,7 +68,7 @@ const maskCep = (value: string) => {
   return digits.replace(/(\d{5})(\d)/, "$1-$2");
 };
 
-const ClienteModal = ({ open, onOpenChange, client }: ClienteModalProps) => {
+const ClienteModal = ({ open, onOpenChange, client, onClientCreated }: ClienteModalProps) => {
   const { createClient, updateClient } = useClients();
   const isEditing = !!client;
 
