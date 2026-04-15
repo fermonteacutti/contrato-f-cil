@@ -196,6 +196,17 @@ const NovoProcesso = () => {
   const saveDraft = async () => {
     try {
       const payload = buildPayload("rascunho");
+      // Validate client_id exists before saving
+      const clientId = payload.client_id;
+      if (!clientId) {
+        toast.error("Selecione um cliente antes de continuar");
+        return;
+      }
+      const clientExists = clients.some((c) => c.id === clientId);
+      if (!clientExists) {
+        toast.error("Cliente selecionado não foi encontrado. Recarregue a página e tente novamente.");
+        return;
+      }
       if (draftId) {
         await updateProcess.mutateAsync({ id: draftId, ...payload });
       } else {
