@@ -59,7 +59,7 @@ const HeroSection = () => {
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 font-heading font-500 text-base px-8 h-12">
+            <Button asChild variant="outline" size="lg" className="border-primary-foreground/60 text-primary-foreground hover:bg-primary-foreground/10 font-heading font-500 text-base px-8 h-12">
               <Link to="/precos">Ver Planos</Link>
             </Button>
           </motion.div>
